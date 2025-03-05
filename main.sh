@@ -23,7 +23,7 @@ for i in "${NUM[@]}"; do
             --retriever bm25 \
             --eval_batch_size 4 2>&1 | tee -a $OUTPUT_DIR/$METHOD-$CATEGORY.log
 
-        python model-eval.py \
+        python eval-72B.py \
             --method $METHOD \
             --num $i \
             --category $CATEGORY \

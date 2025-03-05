@@ -1,0 +1,15 @@
+numpy==1.26.4
+torch==2.5.1
+transformers==4.48.1
+datasets==3.1.0
+evaluate==0.4.3
+vllm==0.6.6.post1
+sentence-transformers==3.4.1
+openai==1.59.7
+tqdm==4.67.1
+rank-bm25==0.2.2
+rouge-score==0.1.2
+sacrebleu==2.5.1
+absl-py==2.1.0
+python-dotenv==1.0.1
+huggingface-hub==0.27.1
