@@ -10,8 +10,8 @@ import torch.distributed as dist
 from dotenv import load_dotenv
 from transformers import set_seed
 from huggingface_hub import login
-from datasets import load_from_disk
 from vllm import LLM, SamplingParams
+from datasets import load_from_disk, load_dataset
 
 from utils.utils import write_to_csv
 from utils.templates import Qwen2PromptTemplate
@@ -69,8 +69,18 @@ with open(predictions_path, 'r', encoding='utf-8') as f:
     predictions = predictions.split('\n---------------------------------\n')
     predictions = predictions[:-1]
 
-main_dataset = load_from_disk(f"DPL-main/{category}/{args.dataset}")
-meta_dataset = load_from_disk(f"DPL-meta/{category}/full")
+# main_dataset = load_from_disk(f"DPL-main/{category}/{args.dataset}")
+# meta_dataset = load_from_disk(f"DPL-meta/{category}/full")
+main_dataset = load_dataset(
+    "SnowCharmQ/personalization_main",
+    category,
+    split=args.dataset
+)
+meta_dataset = load_dataset(
+    "SnowCharmQ/personalization_meta",
+    category,
+    split="full"
+)
 meta_dataset = dict(zip(meta_dataset["asin"],
                         zip(meta_dataset["title"],
                             meta_dataset["description"])))

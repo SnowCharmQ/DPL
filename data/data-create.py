@@ -277,5 +277,9 @@ meta_dataset = DatasetDict(
     }
 )
 
-main_dataset.save_to_disk(f"../DPL-main/{category}")
-meta_dataset.save_to_disk(f"../DPL-meta/{category}")
+if args.push_to_hub:
+    main_dataset.push_to_hub("SnowCharmQ/DPL-main", category, private=False)
+    meta_dataset.push_to_hub("SnowCharmQ/DPL-meta", category, private=False)
+else:
+    main_dataset.save_to_disk(f"../DPL-main/{category}")
+    meta_dataset.save_to_disk(f"../DPL-meta/{category}")

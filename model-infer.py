@@ -8,10 +8,10 @@ from tqdm import tqdm
 from pathlib import Path
 from dotenv import load_dotenv
 from huggingface_hub import login
-from datasets import load_from_disk
 from collections import defaultdict
 from vllm import LLM, SamplingParams
 from transformers import set_seed, AutoTokenizer
+from datasets import load_from_disk, load_dataset
 from sentence_transformers import SentenceTransformer
 
 from utils.utils import postprocess_output
@@ -60,8 +60,18 @@ if __name__ == "__main__":
         model_name
     )
 
-    main_dataset = load_from_disk(f"DPL-main/{category}/{args.dataset}")
-    meta_dataset = load_from_disk(f"DPL-meta/{category}/full")
+    # main_dataset = load_from_disk(f"DPL-main/{category}/{args.dataset}")
+    # meta_dataset = load_from_disk(f"DPL-meta/{category}/full")
+    main_dataset = load_dataset(
+        "SnowCharmQ/personalization_main",
+        category,
+        split=args.dataset
+    )
+    meta_dataset = load_dataset(
+        "SnowCharmQ/personalization_meta",
+        category,
+        split="full"
+    )
 
     user_profile_map = {}
     asin_reviewers_map = defaultdict(set)
