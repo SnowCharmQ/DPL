@@ -37,4 +37,13 @@ You can modify the `main.sh` file to change parameters.
 
 ## Reference
 
-If you find our work useful, please kindly cite our paper.
+If you find our work useful, please kindly cite our paper:
+
+```
+@article{qiu2025measuring,
+  title={Measuring What Makes You Unique: Difference-Aware User Modeling for Enhancing LLM Personalization},
+  author={Qiu, Yilun and Zhao, Xiaoyan and Zhang, Yang and Bai, Yimeng and Wang, Wenjie and Cheng, Hong and Feng, Fuli and Chua, Tat-Seng},
+  journal={arXiv preprint arXiv:2503.02450},
+  year={2025}
+}
+```
