@@ -72,12 +72,12 @@ with open(predictions_path, 'r', encoding='utf-8') as f:
 # main_dataset = load_from_disk(f"DPL-main/{category}/{args.dataset}")
 # meta_dataset = load_from_disk(f"DPL-meta/{category}/full")
 main_dataset = load_dataset(
-    "SnowCharmQ/personalization_main",
+    "SnowCharmQ/DPL-main",
     category,
     split=args.dataset
 )
 meta_dataset = load_dataset(
-    "SnowCharmQ/personalization_meta",
+    "SnowCharmQ/DPL-meta",
     category,
     split="full"
 )
