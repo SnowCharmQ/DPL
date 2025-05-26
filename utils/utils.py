@@ -72,7 +72,7 @@ def postprocess_text(preds, labels):
 
 
 def postprocess_output(output):
-    prefix = "**Review**:"
+    prefix = "[Review]:"
     if output.startswith(prefix):
         return output[len(prefix):].strip()
     return output

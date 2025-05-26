@@ -6,12 +6,10 @@ import torch.distributed as dist
 
 from tqdm import tqdm
 from pathlib import Path
-from dotenv import load_dotenv
-from huggingface_hub import login
+from datasets import load_dataset
 from collections import defaultdict
 from vllm import LLM, SamplingParams
 from transformers import set_seed, AutoTokenizer
-from datasets import load_from_disk, load_dataset
 from sentence_transformers import SentenceTransformer
 
 from utils.utils import postprocess_output
@@ -24,9 +22,6 @@ set_seed(42)
 if dist.is_initialized():
     dist.barrier()
 
-load_dotenv()
-login(token=os.getenv("HF_TOKEN"))
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--method", required=True)
 parser.add_argument("--dataset", required=True, choices=["val", "test"])
@@ -34,10 +29,10 @@ parser.add_argument("--category", required=True,
                     choices=["Movies_and_TV", "CDs_and_Vinyl", "Books"])
 parser.add_argument("--output_dir", required=True)
 parser.add_argument("--max_tokens", type=int, default=4096)
-parser.add_argument("--eval_batch_size", type=int, default=16)
 parser.add_argument("--num_retrieved", type=int,
                     required=True, choices=range(1, 9))
 parser.add_argument("--retriever", default="bm25")
+parser.add_argument("--temperature", type=float, default=0.8)
 parser.add_argument("--gpu")
 
 args = parser.parse_args()
@@ -102,7 +97,7 @@ if __name__ == "__main__":
     sampling_params = SamplingParams(
         max_tokens=args.max_tokens,
         skip_special_tokens=True,
-        temperature=0.8,
+        temperature=args.temperature,
         top_p=0.95
     )
     llm = LLM(
