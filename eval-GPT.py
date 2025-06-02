@@ -70,8 +70,6 @@ with open(predictions_path, 'r', encoding='utf-8') as f:
     predictions = predictions.split('\n---------------------------------\n')
     predictions = predictions[:-1]
 
-# main_dataset = load_from_disk(f"DPL-main/{category}/{args.dataset}")
-# meta_dataset = load_from_disk(f"DPL-meta/{category}/full")
 main_dataset = load_dataset(
     "SnowCharmQ/DPL-main",
     category,
@@ -86,21 +84,22 @@ meta_dataset = dict(zip(meta_dataset["asin"],
                         zip(meta_dataset["title"],
                             meta_dataset["description"])))
 references = [sample["data"]["text"] for sample in main_dataset]
-datas = [(meta_dataset[sample["data"]["asin"]],
-          sample["data"]["rating"],
-          sample["data"]["title"],
-          sample["data"]["text"])
-         for sample in main_dataset]
+datas = [(meta_dataset[sample["data"]["asin"]][0],
+          meta_dataset[sample["data"]["asin"]][1],
+          sample["data"]["rating"], 
+          sample["data"]["title"])
+        for sample in main_dataset]
 
 system_prompt = (
-    f"You are an impartial evaluator tasked with assessing the quality of AI-generated personalized item reviews for a specific user. Based on the scoring criteria and the provided item's title and description, along with the user's rating for this item and the review title, evaluate the AI-generated review compared to the user's real review. Be as objective as possible and output only the score.\n\n"
+    f"You are an impartial evaluator tasked with assessing how well an AI-generated item review is personalized for a specific user. Based on the provided item title and description, the user's rating for this item, and the review title, assign a score to the AI-generated review by comparing it to the user's real review."
     f"[Scoring Criteria]:\n"
-    f"[Score 0]: The AI-generated review is completely different from the user's real review. It does not describe the item correctly and does not reflect the user's thoughts or preferences.\n"
-    f"[Score 2]: The AI-generated review has a weak connection to the user's real review. It may mention the item but does not include the key points or personal details from the user's feedback.\n"
+    f"[Score 0]: The AI-generated review is completely unrelated to the user's real review. It does not describe the item correctly or reflects the user's personal thoughts and preferences.\n"
+    f"[Score 2]: The AI-generated review has a weak connection to the user's real review. It may mention the item but does not include the key points or personal thoughts that the user included.\n"
     f"[Score 4]: The AI-generated review partially matches the user's real review. Some key points are included, but important details are missing, and the review may feel too general or not personal enough.\n"
-    f"[Score 6]: The AI-generated review mostly matches the user's real review. It covers the main points but may miss some details or personal touches that the user included.\n"
+    f"[Score 6]: The AI-generated review mostly matches the user's real review. It covers the main points but may miss some details or personal thoughts that the user included.\n"
     f"[Score 8]: The AI-generated review is very similar to the user's real review. It captures the user's thoughts and preferences well, with only small differences.\n"
     f"[Score 10]: The AI-generated review is almost the same as the user's real review. It includes all key details, personal thoughts, and preferences exactly as the user expressed them.\n"
+    f"Output the numerical score only."
 )
 
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"),

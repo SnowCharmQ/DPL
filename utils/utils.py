@@ -79,7 +79,7 @@ def postprocess_output(output):
 
 
 def write_to_csv(method, metric, value):
-    file_path = "../result.csv"
+    file_path = "result.csv"
     lock_path = file_path + ".lock"
     with FileLock(lock_path):
         if os.path.exists(file_path):
