@@ -1,16 +1,17 @@
 #!/bin/bash
 
 METHOD="DPL"
-NUM=(1 2 4 8)
+NUMS=(8)
 CATEGORIES=("Movies_and_TV" "CDs_and_Vinyl" "Books")
 DATASET="test"
 OUTPUT_DIR="./output"
+
 mkdir -p $OUTPUT_DIR
 
 echo "$METHOD"
-for i in "${NUM[@]}"; do
+for NUM in "${NUMS[@]}"; do
     for CATEGORY in "${CATEGORIES[@]}"; do
-        echo "Category: $CATEGORY | Number of retrieved: $i"
+        echo "Category: $CATEGORY | Number of retrieved: $NUM"
 
         python model-infer.py \
             --method $METHOD \
@@ -19,16 +20,22 @@ for i in "${NUM[@]}"; do
             --category $CATEGORY \
             --output_dir $OUTPUT_DIR \
             --max_tokens 2048 \
-            --num_retrieved $i \
-            --retriever bm25 \
-            --eval_batch_size 4 2>&1 | tee -a $OUTPUT_DIR/$METHOD-$CATEGORY.log
+            --num_retrieved $NUM \
+            --retriever bm25
+
+        python eval-basic.py \
+            --method $METHOD \
+            --num $NUM \
+            --category $CATEGORY \
+            --output_dir $OUTPUT_DIR \
+            --dataset $DATASET
 
         python eval-72B.py \
             --method $METHOD \
-            --num $i \
+            --num $NUM \
             --category $CATEGORY \
             --output_dir $OUTPUT_DIR \
-            --dataset $DATASET 2>&1 | tee -a $OUTPUT_DIR/$METHOD-$CATEGORY.log
+            --dataset $DATASET
             
     done
 done
