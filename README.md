@@ -6,7 +6,7 @@ This is the implementation of the DPL method proposed in our paper:
 > 
 > Yilun Qiu, Xiaoyan Zhao, Yang Zhang, Yimeng Bai, Wenjie Wang, Hong Cheng, Fuli Feng, Tat-Seng Chua
 
-![DPL Framework](fig/framework.png)
+![DPL Framework](fig/framework.jpg)
 
 ## Environment Setup
 
