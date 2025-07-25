@@ -1,5 +1,6 @@
 import os
 import sys
+import pickle
 import argparse
 import warnings
 import torch.distributed as dist
@@ -10,7 +11,6 @@ from datasets import load_dataset
 from collections import defaultdict
 from vllm import LLM, SamplingParams
 from transformers import set_seed, AutoTokenizer
-from sentence_transformers import SentenceTransformer
 
 from utils.utils import postprocess_output
 from utils.templates import Qwen2PromptTemplate
@@ -42,21 +42,25 @@ os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
 if __name__ == "__main__":
     print(Path(__file__).resolve())
+    with open(__file__, 'r', encoding='utf-8') as f:
+        content = f.read()
     output_dir = args.output_dir
     method = args.method
     num = args.num_retrieved
     category = args.category
 
     if not os.path.exists(f"{output_dir}/{method}_{category}"):
-        os.makedirs(f"{output_dir}/{method}_{category}")
+        os.makedirs(f"{output_dir}/{method}_{category}", exist_ok=True)
 
-    model_name = "Qwen/Qwen2.5-14B-Instruct"
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name
-    )
+    if os.path.exists(f"{output_dir}/{method}_{category}/diff_inputs_{category}.pkl"):
+        with open(f"{output_dir}/{method}_{category}/diff_inputs_{category}.pkl", "rb") as f:
+            diff_inputs = pickle.load(f)
+    else:
+        diff_inputs = None
 
-    # main_dataset = load_from_disk(f"DPL-main/{category}/{args.dataset}")
-    # meta_dataset = load_from_disk(f"DPL-meta/{category}/full")
+    model_name = "Qwen/Qwen2.5-7B-Instruct"
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+
     main_dataset = load_dataset(
         "SnowCharmQ/DPL-main",
         category,
@@ -79,16 +83,20 @@ if __name__ == "__main__":
                         zip(meta_dataset["title"], 
                             meta_dataset["description"])))
 
-    embedder = SentenceTransformer("Alibaba-NLP/gte-Qwen2-1.5B-instruct")
     prompt_generator = create_prompt_generator(
         num_retrieved=num,
         user_profile_map=user_profile_map,
         asin_reviewers_map=asin_reviewers_map,
-        embedder=embedder,
+        embedder=None,
     )
 
-    dataset = GeneralDataset(main_dataset, user_profile_map,
-                             asin_map, prompt_generator)
+    dataset = GeneralDataset(
+        main_dataset=main_dataset,
+        diff_inputs=diff_inputs,
+        user_profile_map=user_profile_map,
+        asin_map=asin_map,
+        prompt_generator=prompt_generator
+    )
     dataset = [(inp_creator, summ_creator, diff_inp, out)
                for inp_creator, summ_creator, diff_inp, out
                in tqdm(dataset, desc="Data-processing", total=len(dataset))]

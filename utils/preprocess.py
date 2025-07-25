@@ -4,8 +4,16 @@ import utils.utils as utils
 
 
 class GeneralDataset(Dataset):
-    def __init__(self, main_dataset, user_profile_map, asin_map, prompt_generator):
+    def __init__(
+            self, 
+            main_dataset, 
+            diff_inputs, 
+            user_profile_map, 
+            asin_map, 
+            prompt_generator
+        ):
         self.main_dataset = main_dataset
+        self.diff_inputs = diff_inputs
         self.user_profile_map = user_profile_map
         self.asin_map = asin_map
         self.prompt_generator = prompt_generator
@@ -23,8 +31,16 @@ class GeneralDataset(Dataset):
         asin = data["asin"]
         item_title, description = self.asin_map[asin]
         text, rating, review_title = data["text"], data["rating"], data["title"]
-        inp_creator, summ_creator, diff_inp = self.prompt_generator(user_id, item_title, description,
-                                                                    rating, review_title, profile)
+        diff_inp = self.diff_inputs[index] if self.diff_inputs else None
+        inp_creator, summ_creator, diff_inp = self.prompt_generator(
+            user_id, 
+            item_title, 
+            description,
+            rating, 
+            review_title, 
+            profile,
+            diff_inp
+        )
         return inp_creator, summ_creator, diff_inp, text
 
     def __len__(self):
@@ -34,18 +50,18 @@ class GeneralDataset(Dataset):
 def create_prompt_generator(num_retrieved,
                             user_profile_map,
                             asin_reviewers_map,
-                            embedder):
+                            embedder=None):
 
-    def prompt(user_id, item_title, description, rating, review_title, profile):
+    def prompt(user_id, item_title, description, rating, review_title, profile, diff_inp):
         return create_data(num_retrieved, user_id, item_title, 
                            description, rating, review_title,
                            profile, user_profile_map, 
-                           asin_reviewers_map, embedder)
+                           asin_reviewers_map, embedder, diff_inp)
     return prompt
 
 
 def create_data(num_retrieved, user_id, item_title, description, rating, review_title,
-                profile, user_profile_map, asin_reviewers_map, embedder):
+                profile, user_profile_map, asin_reviewers_map, embedder, diff_inp):
 
     diff_profile = [
         prof for prof in profile
@@ -128,25 +144,28 @@ def create_data(num_retrieved, user_id, item_title, description, rating, review_
         )
         return prompt
 
-    diff_inputs = []
-    for prof in selected_diff_profile:
-        p_asin = prof["asin"]
-        p_item_title = prof["item_title"]
-        p_desc = prof["description"]
-        p_rating = prof["rating"]
-        p_review_title = prof["title"]
-        p_text = prof["text"]
-        reviewers = sorted(asin_reviewers_map[p_asin])
-        reviewers.remove(user_id)
-        cur = (p_rating, p_review_title, p_text)
-        others = []
-        for reviewer in reviewers:
-            other_reviewer_profile = user_profile_map[reviewer]
-            for pp in other_reviewer_profile:
-                if pp["asin"] == p_asin:
-                    others.append((pp["rating"], pp["title"], pp["text"]))
-                    break
-        others = utils.get_others_by_kmeans(p_text, others, embedder, n=4)
-        diff_inp = create_diff_inp(p_item_title, p_desc, cur, others)
-        diff_inputs.append(diff_inp)
-    return create_inp, create_summ_inp, diff_inputs
+    if diff_inp:
+        return create_inp, create_summ_inp, diff_inp
+    else:
+        diff_inputs = []
+        for prof in selected_diff_profile:
+            p_asin = prof["asin"]
+            p_item_title = prof["item_title"]
+            p_desc = prof["description"]
+            p_rating = prof["rating"]
+            p_review_title = prof["title"]
+            p_text = prof["text"]
+            reviewers = sorted(asin_reviewers_map[p_asin])
+            reviewers.remove(user_id)
+            cur = (p_rating, p_review_title, p_text)
+            others = []
+            for reviewer in reviewers:
+                other_reviewer_profile = user_profile_map[reviewer]
+                for pp in other_reviewer_profile:
+                    if pp["asin"] == p_asin:
+                        others.append((pp["rating"], pp["title"], pp["text"]))
+                        break
+            others = utils.get_others_by_kmeans(p_text, others, embedder, n=4)
+            diff_inp = create_diff_inp(p_item_title, p_desc, cur, others)
+            diff_inputs.append(diff_inp)
+        return create_inp, create_summ_inp, diff_inputs

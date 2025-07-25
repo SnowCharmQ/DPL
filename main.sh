@@ -2,7 +2,7 @@
 
 METHOD="DPL"
 NUMS=(8)
-CATEGORIES=("Movies_and_TV" "CDs_and_Vinyl" "Books")
+CATEGORIES=("Books" "Movies_and_TV" "CDs_and_Vinyl")
 DATASET="test"
 OUTPUT_DIR="./output"
 
@@ -12,6 +12,15 @@ echo "$METHOD"
 for NUM in "${NUMS[@]}"; do
     for CATEGORY in "${CATEGORIES[@]}"; do
         echo "Category: $CATEGORY | Number of retrieved: $NUM"
+
+        python diff-build.py \
+            --method $METHOD \
+            --gpu 0 \
+            --dataset $DATASET \
+            --category $CATEGORY \
+            --output_dir $OUTPUT_DIR \
+            --num_retrieved $NUM \
+            --retriever bm25
 
         python model-infer.py \
             --method $METHOD \
