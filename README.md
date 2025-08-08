@@ -26,7 +26,7 @@
 
 <br/>
 
-This is the implementation of the Difference-aware Personalized Learning (DPL) method proposed in our paper accepted by **ACL 2025 Findings**.
+This is the implementation of the Difference-aware Personalization Learning (DPL) method proposed in our paper accepted by **ACL 2025 Findings**.
 
 
 ![DPL Framework](fig/framework.jpg)
